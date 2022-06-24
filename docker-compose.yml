@@ -1,0 +1,44 @@
+version: "3.8"
+services:
+    mysql-server:
+        image: mysql:latest
+        ports:
+            - 3399:3306
+        restart: always
+        volumes:
+            - ./mysql/sql/:/docker-entrypoint-initdb.d/
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: user
+            MYSQL_PASSWORD: user
+            MYSQL_ROOT_HOST: '%'  # needs to be enclosed with quotes
+        networks:
+            - WEB
+
+    web:
+        build: ./www
+        restart: always
+        ports:
+            - 8080:80
+        volumes:
+            - ./www:/var/www/html/
+        depends_on:
+            - "mysql-server"
+        networks:
+            - WEB
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin:latest
+        ports:
+            - 8888:80
+        restart: always
+        environment:
+            - PMA_HOST=mysql-server
+        depends_on:
+            - "mysql-server"
+        networks:
+            - WEB
+            
+networks:
+    WEB:
+        external:
+            name: web_final
